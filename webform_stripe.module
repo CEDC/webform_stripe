@@ -31,7 +31,7 @@ function webform_stripe_menu() {
     'title' => 'Webform Stripe',
     'description' => 'Configure Stripe API for Webform.',
     'access arguments' => array('administer webform stripe'),
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('webform_stripe_settings_form'),
     'file' => 'webform_stripe.admin.inc',
   );
@@ -123,12 +123,23 @@ function webform_stripe_image_default_styles() {
 }
 
 /**
+ * Implements hook_config_info().
+ */
+function webform_stripe_config_info() {
+  $prefixes['webform_stripe.settings'] = array(
+    'label' => t('Module name settings'),
+    'group' => t('Configuration'),
+  );
+}
+
+/**
  * Returns Stripe Checkout settings.
  */
 function webform_stripe_checkout_settings() {
+  $config = config('webform_stripe.settings');
   // Merge variable settings with default settings.
-  return variable_get('webform_stripe_checkout_settings', array()) + array(
-    'name' => variable_get('site_name', 'Drupal'),
+  return $config->get('webform_stripe_checkout_settings') + array(
+    'name' => config_get('system.performance', 'site_name'),
     'image' => '',
     'currency' => 'USD',
     'locale' => 'auto',
@@ -143,7 +154,7 @@ function webform_stripe_checkout_settings() {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter() for "webform_component_edit_form".
+ * Implements hook_form_FORM_ID_alter() for "webform_component_edit_form"().
  */
 function webform_stripe_form_webform_component_edit_form_alter(&$form, &$form_state) {
   form_load_include($form_state, 'inc', 'webform_stripe', 'webform_stripe.webform');
@@ -151,7 +162,7 @@ function webform_stripe_form_webform_component_edit_form_alter(&$form, &$form_st
 }
 
 /**
- * Implements hook_form_FORM_ID_alter() for "webform_configure_form".
+ * Implements hook_form_FORM_ID_alter() for "webform_configure_form"().
  */
 function webform_stripe_form_webform_configure_form_alter(&$form, &$form_state) {
   form_load_include($form_state, 'inc', 'webform_stripe', 'webform_stripe.webform');
@@ -159,7 +170,7 @@ function webform_stripe_form_webform_configure_form_alter(&$form, &$form_state) 
 }
 
 /**
- * Implements hook_form_BASE_FORM_ID_alter() for "webform_client_form".
+ * Implements hook_form_BASE_FORM_ID_alter() for "webform_client_form"().
  */
 function webform_stripe_form_webform_client_form_alter(&$form, &$form_state, $form_id) {
   form_load_include($form_state, 'inc', 'webform_stripe', 'webform_stripe.webform');
@@ -182,8 +193,8 @@ function webform_stripe_format_amount($amount, $currency) {
     case 'USD':
       return '$' . number_format($amount / 100, 2) . ' ' . $currency;
 
-    // Zero-decimal currencies.
-    // https://support.stripe.com/questions/which-zero-decimal-currencies-does-stripe-support
+      // Zero-decimal currencies.
+      // https://support.stripe.com/questions/which-zero-decimal-currencies-does-stripe-support
     case 'BIF':
     case 'CLP':
     case 'DJF':
@@ -201,7 +212,7 @@ function webform_stripe_format_amount($amount, $currency) {
     case 'XPF':
       return $amount . ' ' . $currency;
 
-    // Other currencies which use decimals. This needs work.
+      // Other currencies which use decimals. This needs work.
     default:
       return number_format($amount / 100, 2) . ' ' . $currency;
   }

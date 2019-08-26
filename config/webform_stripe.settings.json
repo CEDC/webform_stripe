@@ -1,0 +1,13 @@
+{
+    "_config_name": "webform_stripe.settings",
+    "webform_stripe_test_publishable_key": "",
+    "webform_stripe_test_secret_key": "",
+    "webform_stripe_live_publishable_key": "",
+    "webform_stripe_live_secret_key": "",
+    "webform_stripe_default_image_type": "none",
+    "webform_stripe_default_image_file": "",
+    "webform_stripe_default_image_url": "",
+    "webform_stripe_secret_key": "",
+    "webform_stripe_publishable_key": "",
+    "webform_stripe_checkout_settings": "dynamic value in file /webform_stripe/webform_stripe.module line 130"
+}

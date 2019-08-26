@@ -21,7 +21,7 @@ function drush_webform_stripe_download() {
   }
 
   // Download with Git.
-  $path = DRUPAL_ROOT . '/sites/all/libraries/stripe-php';
+  $path = BACKDROP_ROOT . '/sites/all/libraries/stripe-php';
   if (drush_shell_exec('git clone git://github.com/stripe/stripe-php.git ' . $path)) {
     drush_log(dt('Stripe PHP library has been cloned via git to @path.', array('@path' => $path)), 'success');
   }

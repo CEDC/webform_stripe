@@ -4,7 +4,9 @@
  * Settings form.
  */
 function webform_stripe_settings_form() {
+  $config = config('webform_stripe.settings');
   // Keys.
+  $form['#config'] = 'webform_stripe.settings';
   $form['keys'] = array(
     '#type' => 'fieldset',
     '#title' => t('Stripe API Keys'),
@@ -15,25 +17,25 @@ function webform_stripe_settings_form() {
   $form['keys']['webform_stripe_test_publishable_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Test Publishable Key'),
-    '#default_value' => variable_get('webform_stripe_test_publishable_key', ''),
+    '#default_value' => $config->get('webform_stripe_test_publishable_key'),
     '#required' => TRUE,
   );
   $form['keys']['webform_stripe_test_secret_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Test Secret Key'),
-    '#default_value' => variable_get('webform_stripe_test_secret_key', ''),
+    '#default_value' => $config->get('webform_stripe_test_secret_key'),
     '#required' => TRUE,
   );
   $form['keys']['webform_stripe_live_publishable_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Live Publishable Key'),
-    '#default_value' => variable_get('webform_stripe_live_publishable_key', ''),
+    '#default_value' => $config->get('webform_stripe_live_publishable_key'),
     '#required' => TRUE,
   );
   $form['keys']['webform_stripe_live_secret_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Live Secret Key'),
-    '#default_value' => variable_get('webform_stripe_live_secret_key', ''),
+    '#default_value' => $config->get('webform_stripe_live_secret_key'),
     '#required' => TRUE,
   );
 
@@ -50,7 +52,7 @@ function webform_stripe_settings_form() {
       'file' => t('Custom image upload'),
       'url' => t('Custom image URL'),
     ),
-    '#default_value' => variable_get('webform_stripe_default_image_type', 'none'),
+    '#default_value' => $config->get('webform_stripe_default_image_type'),
     '#required' => TRUE,
   );
 
@@ -59,7 +61,7 @@ function webform_stripe_settings_form() {
     '#type' => 'managed_file',
     '#title' => t('Image upload'),
     '#description' => t('Select an png, jpg, or gif image that with a minimum size of 128x128px.'),
-    '#default_value' => variable_get('webform_stripe_default_image_file', ''),
+    '#default_value' => $config->get('webform_stripe_default_image_file'),
     '#upload_validators' => array(
       'file_validate_image_resolution' => array(0, '128x128'),
       'file_validate_extensions' => array('png jpg gif'),
@@ -79,7 +81,7 @@ function webform_stripe_settings_form() {
     '#type' => 'textfield',
     '#title' => t('Image URL'),
     '#description' => t('Enter an external URL or an internal path to a square image of your brand or product. It should be a png, jpg, or gif image with a minimum size of 128x128px.'),
-    '#default_value' => variable_get('webform_stripe_default_image_url', ''),
+    '#default_value' => $config->get('webform_stripe_default_image_url'),
     '#states' => array(
       'visible' => array(
         ':input[name="webform_stripe_default_image_type"]' => array('value' => 'url'),

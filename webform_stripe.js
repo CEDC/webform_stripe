@@ -7,8 +7,8 @@
    * @see https://www.drupal.org/node/2661330
    * @see https://www.drupal.org/node/2782783
    */
-  var beforeSubmit = Drupal.ajax.prototype.beforeSubmit;
-  Drupal.ajax.prototype.beforeSubmit = function(form_values, element, options) {
+  var beforeSubmit = Backdrop.ajax.prototype.beforeSubmit;
+  Backdrop.ajax.prototype.beforeSubmit = function(form_values, element, options) {
     if (element.hasClass('webform-stripe-form')) {
       options.async = false;
     }
@@ -19,7 +19,7 @@
    * Ajax command to open Stripe Checkout, store token and email in hidden
    * token field, and submit form.
    */
-  Drupal.ajax.prototype.commands.webformStripeCheckout = function(ajax, data, status) {
+  Backdrop.ajax.prototype.commands.webformStripeCheckout = function(ajax, data, status) {
     StripeCheckout.open($.extend(data.params, {
       token: function(token) {
         $('.webform-stripe-token', ajax.form.context).val(token.id + ':' + token.email);
@@ -31,7 +31,7 @@
   /**
    * Scrolls to top of Webform with Stripe payment.
    */
-  Drupal.ajax.prototype.commands.webformStripeScroll = function(ajax, response, status) {
+  Backdrop.ajax.prototype.commands.webformStripeScroll = function(ajax, response, status) {
     // Determine what to scroll to, either our wrapper div, or a block, or a
     // Panels pane.
     var $el = $(response.selector).closest('.block.block-webform');

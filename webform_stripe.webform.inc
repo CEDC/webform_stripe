@@ -50,17 +50,18 @@ function _webform_defaults_webform_stripe() {
  *   An array of Stripe subscription plans.
  */
 function _webform_stripe_get_plans($test_mode) {
-  $plans = &drupal_static('webform_stripe_plans');
+  $config = config('webform_stripe.settings');
+  $plans = &backdrop_static('webform_stripe_plans');
 
   if (!isset($plans)) {
     $plans = array();
-    $secret_key = $test_mode ? variable_get('webform_stripe_test_secret_key', '') : variable_get('webform_stripe_live_secret_key', '');
+    $secret_key = $test_mode ? $config->get('webform_stripe_test_secret_key') : $config->get('webform_stripe_live_secret_key');
 
     // Load list of Stripe plans.
     if (($library = webform_stripe_load_library()) && $library['loaded'] && !empty($secret_key)) {
-      \Stripe\Stripe::setApiKey($secret_key);
+      Stripe Stripe::setApiKey($secret_key);
       try {
-        foreach (\Stripe\Plan::all()->data as $plan) {
+        foreach (Stripe Plan::all()->data as $plan) {
           $plans[$plan->id] = array(
             'id' => $plan->id,
             // As of 2/5/2018, 'name' was replaced with 'nickname'.
@@ -73,7 +74,7 @@ function _webform_stripe_get_plans($test_mode) {
           );
         }
       }
-      catch(\Stripe\Error\Base $e) {
+      catch (Stripe Error Base $e) {
 
       }
     }
@@ -86,9 +87,10 @@ function _webform_stripe_get_plans($test_mode) {
  * Implements _webform_edit_component().
  */
 function _webform_edit_webform_stripe($component) {
+  $config = config('webform_stripe.settings');
   // Show notification if keys aren't configured.
-  if (!variable_get('webform_stripe_test_secret_key', '') || !variable_get('webform_stripe_test_publishable_key', '') || !variable_get('webform_stripe_live_secret_key', '') || !variable_get('webform_stripe_live_publishable_key', '')) {
-    drupal_set_message(t('You need to <a href="!url">configure your Stripe API keys</a>.', array(
+  if (!$config->get('webform_stripe_test_secret_key') || !$config->get('webform_stripe_test_publishable_key') || !$config->get('webform_stripe_live_secret_key') || !$config->get('webform_stripe_live_publishable_key')) {
+    backdrop_set_message(t('You need to <a href="!url">configure your Stripe API keys</a>.', array(
       '!url' => url('admin/config/services/webform-stripe'),
     )), 'warning');
   }
@@ -99,8 +101,8 @@ function _webform_edit_webform_stripe($component) {
   if (empty($component['cid'])) {
     foreach ($node->webform['components'] as $other_component) {
       if ($other_component['type'] === 'webform_stripe') {
-        drupal_set_message(t('Only one Stripe payment component is allowed.'), 'error');
-        drupal_goto("node/$node->nid/webform/components");
+        backdrop_set_message(t('Only one Stripe payment component is allowed.'), 'error');
+        backdrop_goto("node/$node->nid/webform/components");
       }
     }
   }
@@ -203,7 +205,7 @@ function _webform_edit_webform_stripe($component) {
       'visible' => array(
         ':input[name="extra[amount_type]"]' => array(
           array('value' => 'value'),
-          array('value' => 'value_component')
+          array('value' => 'value_component'),
         ),
       ),
     ),
@@ -273,7 +275,7 @@ function _webform_edit_webform_stripe($component) {
       'visible' => array(
         ':input[name="extra[amount_type]"]' => array(
           array('value' => 'plan'),
-          array('value' => 'plan_component')
+          array('value' => 'plan_component'),
         ),
       ),
     ),
@@ -290,7 +292,7 @@ function _webform_edit_webform_stripe($component) {
       'visible' => array(
         ':input[name="extra[amount_type]"]' => array(
           array('value' => 'plan'),
-          array('value' => 'plan_component')
+          array('value' => 'plan_component'),
         ),
         ':input[name="extra[amount_plan_qty_type]"]' => array('value' => 'value'),
       ),
@@ -319,7 +321,7 @@ function _webform_edit_webform_stripe($component) {
       'visible' => array(
         ':input[name="extra[amount_type]"]' => array(
           array('value' => 'plan'),
-          array('value' => 'plan_component')
+          array('value' => 'plan_component'),
         ),
         ':input[name="extra[amount_plan_qty_type]"]' => array('value' => 'component'),
       ),
@@ -338,7 +340,7 @@ function _webform_edit_webform_stripe($component) {
         'visible' => array(
           ':input[name="extra[amount_type]"]' => array(
             array('value' => 'plan'),
-            array('value' => 'plan_component')
+            array('value' => 'plan_component'),
           ),
           ':input[name="extra[amount_plan_qty_type]"]' => array('value' => 'component'),
         ),
@@ -696,10 +698,10 @@ function _webform_stripe_form_webform_component_edit_form_alter(&$form, &$form_s
           foreach (array('value', 'plan') as $type) {
             if (
               $component['extra']["{$setting}_type"] === "{$type}_component"
-              && isset($component['extra']["{$setting}_{$type}_component"])
-              && $component['extra']["{$setting}_{$type}_component"] === $form_state['build_info']['args'][1]['cid']
+               && isset($component['extra']["{$setting}_{$type}_component"])
+               && $component['extra']["{$setting}_{$type}_component"] === $form_state['build_info']['args'][1]['cid']
             ) {
-              drupal_set_message(t('The Stripe payment component is using this field to populate the %setting. If you add options to this field, be sure to also update the Stripe payment options.', array(
+              backdrop_set_message(t('The Stripe payment component is using this field to populate the %setting. If you add options to this field, be sure to also update the Stripe payment options.', array(
                 '%setting' => $setting,
               )), 'warning');
             }
@@ -755,7 +757,7 @@ function _webform_edit_webform_stripe_validate($form, &$form_state) {
       );
       if (
         array_key_exists($settings['currency'], $minimum)
-        && ($form_state['values']['extra']['amount_value'] * $form_state['values']['extra']['amount_value_multiplier']) < $minimum[$settings['currency']]
+         && ($form_state['values']['extra']['amount_value'] * $form_state['values']['extra']['amount_value_multiplier']) < $minimum[$settings['currency']]
       ) {
         form_set_error('extra][amount_value', t('The minimum amount for %currency is %minimum (cents).', array(
           '%currency' => $settings['currency'],
@@ -883,8 +885,7 @@ function _webform_render_webform_stripe($component, $value = NULL, $filter = TRU
     '#weight' => $component['weight'],
     '#attached' => array(
       'js' => array(
-        'https://checkout.stripe.com/checkout.js' => array('type' => 'external'),
-        drupal_get_path('module', 'webform_stripe') . '/webform_stripe.js',
+        'https://checkout.stripe.com/checkout.js' => array('type' => 'external'), backdrop_get_path('module', 'webform_stripe') . '/webform_stripe.js',
       ),
     ),
   );
@@ -918,11 +919,11 @@ function _webform_stripe_form_webform_client_form_alter(&$form, &$form_state) {
         $form['#webform_stripe'] = $component;
 
         // Wrap form.
-        $form['#webform_stripe_html_id'] = drupal_html_id('webform-stripe-form');
+        $form['#webform_stripe_html_id'] = backdrop_html_id('webform-stripe-form');
         $form['#prefix'] = '<div id="' . $form['#webform_stripe_html_id'] . '">';
         $form['#suffix'] = '</div>';
 
-        // Add class to form to help Drupal.ajax.prototype.beforeSubmit().
+        // Add class to form to help Backdrop.ajax.prototype.beforeSubmit().
         $form['#attributes']['class'][] = 'webform-stripe-form';
 
         // Replace Webform's submit callback with our own.
@@ -965,7 +966,7 @@ function _webform_stripe_form_webform_client_form_alter(&$form, &$form_state) {
  */
 function _webform_stripe_form_webform_client_form_ajax_callback($form, $form_state) {
   // Validate form.
-  drupal_validate_form($form['#form_id'], $form, $form_state);
+  backdrop_validate_form($form['#form_id'], $form, $form_state);
 
   // Form has errors; show errors and scroll to top of form.
   if (form_get_errors()) {
@@ -1005,13 +1006,14 @@ function _webform_stripe_form_webform_client_form_ajax_callback($form, $form_sta
  * Builds final Stripe Checkout component settings.
  */
 function _webform_stripe_process_checkout_settings($component, $data, $state) {
+  $config = config('webform_stripe.settings');
   // Load node.
   $node = node_load($component['nid']);
 
   // Merge component settings, publishable key, and default settings.
   $settings = array(
     'panel-label' => $component['extra']['panel_label'],
-    'key' => $component['extra']['test_mode'] ? variable_get('webform_stripe_test_publishable_key', '') : variable_get('webform_stripe_live_publishable_key', ''),
+    'key' => $component['extra']['test_mode'] ? $config->get('webform_stripe_test_publishable_key') : $config->get('webform_stripe_live_publishable_key'),
   ) + webform_stripe_checkout_settings();
 
   // Determine amount or plan.
@@ -1021,17 +1023,17 @@ function _webform_stripe_process_checkout_settings($component, $data, $state) {
       $settings['amount'] = $component['extra']['amount_value'];
       break;
 
-    // Dynamic amount.
+      // Dynamic amount.
     case 'value_component':
       $settings['amount'] = _webform_stripe_process_dynamic_value('amount_value', $component, $data);
       break;
 
-    // Fixed plan.
+      // Fixed plan.
     case 'plan':
       $settings['plan'] = $component['extra']['amount_plan'];
       break;
 
-    // Dynamic plan.
+      // Dynamic plan.
     case 'plan_component':
       $settings['plan'] = _webform_stripe_process_dynamic_value('amount_plan', $component, $data);
       break;
@@ -1051,7 +1053,7 @@ function _webform_stripe_process_checkout_settings($component, $data, $state) {
         $settings['plan_quantity'] = $component['extra']['amount_plan_qty_value'];
         break;
 
-      // Dynamic quantity.
+        // Dynamic quantity.
       case 'component':
         $settings['plan_quantity'] = _webform_stripe_process_dynamic_value('amount_plan_qty', $component, $data);
         break;
@@ -1071,12 +1073,12 @@ function _webform_stripe_process_checkout_settings($component, $data, $state) {
       $settings['description'] = $component['extra']['description_value'];
       break;
 
-    // Dynamic description.
+      // Dynamic description.
     case 'value_component':
       $settings['description'] = _webform_stripe_process_dynamic_value('description_value', $component, $data);
       break;
 
-    // Plan description.
+      // Plan description.
     case 'plan':
       $plans = _webform_stripe_get_plans($component['extra']['test_mode']);
       if (!empty($settings['plan']) && array_key_exists($settings['plan'], $plans)) {
@@ -1092,7 +1094,7 @@ function _webform_stripe_process_checkout_settings($component, $data, $state) {
       $settings['email'] = user_uid_optional_load()->mail;
       break;
 
-    // From component.
+      // From component.
     case 'component':
       $settings['email'] = _webform_stripe_process_dynamic_value('email', $component, $data);
       break;
@@ -1104,9 +1106,9 @@ function _webform_stripe_process_checkout_settings($component, $data, $state) {
 
   // Merge image default settings.
   if ($component['extra']['image_type'] === 'default') {
-    $component['extra']['image_type'] = variable_get('webform_stripe_default_image_type', 'none');
-    $component['extra']['image_file'] = variable_get('webform_stripe_default_image_file', '');
-    $component['extra']['image_url'] = variable_get('webform_stripe_default_image_url', '');
+    $component['extra']['image_type'] = $config->get('webform_stripe_default_image_type');
+    $component['extra']['image_file'] = $config->get('webform_stripe_default_image_file');
+    $component['extra']['image_url'] = $config->get('webform_stripe_default_image_url');
   }
 
   // Determine image.
@@ -1119,14 +1121,14 @@ function _webform_stripe_process_checkout_settings($component, $data, $state) {
       }
       break;
 
-    // URL.
+      // URL.
     case 'url':
       if (!empty($component['extra']['image_url'])) {
         $settings['image'] = url($component['extra']['image_url']);
       }
       break;
 
-    // None.
+      // None.
     case 'none':
       $settings['image'] = NULL;
       break;
@@ -1152,7 +1154,7 @@ function _webform_stripe_process_checkout_settings($component, $data, $state) {
     'form' => $form,
     'state' => $state,
   );
-  drupal_alter('webform_stripe_checkout_settings', $settings, $context);
+  backdrop_alter('webform_stripe_checkout_settings', $settings, $context);
 
   // Prepare for Javascript.
   foreach ($settings as $key => $setting) {
@@ -1228,6 +1230,7 @@ function _webform_stripe_process_dynamic_value($type, $component, $data) {
  * Webform submit callback which processes a Stripe token.
  */
 function _webform_stripe_process_token(&$form, &$form_state) {
+  $config = config('webform_stripe.settings');
   $component = $form['#webform_stripe'];
   $value = $form_state['values']['submitted'][$component['cid']];
 
@@ -1246,16 +1249,16 @@ function _webform_stripe_process_token(&$form, &$form_state) {
   webform_stripe_load_library();
 
   // Set secret key.
-  \Stripe\Stripe::setApiKey($component['extra']['test_mode'] ? variable_get('webform_stripe_test_secret_key', '') : variable_get('webform_stripe_live_secret_key', ''));
+  Stripe Stripe::setApiKey($component['extra']['test_mode'] ? $config->get('webform_stripe_test_secret_key') : $config->get('webform_stripe_live_secret_key'));
 
   try {
     // Create a subscription, and save the customer and subscription IDs.
     if (!empty($settings['plan'])) {
-      $customer = \Stripe\Customer::create(array(
+      $customer = Stripe Customer::create(array(
         'email' => $email,
         'source' => $token,
       ));
-      $subscription = \Stripe\Subscription::create(array(
+      $subscription = Stripe Subscription::create(array(
         'customer' => $customer->id,
         'items' => array(
           array(
@@ -1275,7 +1278,7 @@ function _webform_stripe_process_token(&$form, &$form_state) {
 
     // Charge a one-time amount, and save the charge ID, amount, and currency.
     else {
-      $charge = \Stripe\Charge::create(array(
+      $charge = Stripe Charge::create(array(
         'source' => $token,
         'amount' => $settings['amount'],
         'description' => !empty($settings['description']) ? $settings['description'] : '',
@@ -1302,20 +1305,20 @@ function _webform_stripe_process_token(&$form, &$form_state) {
     // hook_webform_stripe_checkout_settings_alter().
     $settings['metadata']['submission_url'] = url("node/{$component['nid']}/submission/{$form_state['values']['details']['sid']}", array('absolute' => TRUE));
     if (isset($subscription)) {
-      \Stripe\Subscription::update($subscription->id, array(
+      Stripe Subscription::update($subscription->id, array(
         'metadata' => $settings['metadata'],
       ));
     }
     else if (isset($charge)) {
-      \Stripe\Charge::update($charge->id, array(
+      Stripe Charge::update($charge->id, array(
         'metadata' => $settings['metadata'],
       ));
     }
   }
 
   // Transaction failed.
-  catch(\Stripe\Error\Base $e) {
-    drupal_set_message(t('The payment was unsuccessful: %message', array(
+  catch (Stripe Error Base $e) {
+    backdrop_set_message(t('The payment was unsuccessful: %message', array(
       '%message' => $e->getMessage(),
     )), 'error');
     $form_state['rebuild'] = TRUE;
